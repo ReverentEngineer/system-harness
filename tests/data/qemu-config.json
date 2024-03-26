@@ -1,0 +1,7 @@
+{
+    "arch": "i386",
+    "memory": 512,
+    "machine": {
+        "type": "q35"
+    }
+}

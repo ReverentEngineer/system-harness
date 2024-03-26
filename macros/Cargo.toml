@@ -1,0 +1,20 @@
+[package]
+name = "system-harness-macros"
+authors = ["Jeff Caffrey-Hill <jeff@caffreyhill.com>"]
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/ReverentEngineer/system-harness"
+documentation = "https://docs.rs/system-harness"
+description = """
+A helper library for the system-harness crate 
+"""
+keywords = ["macros", "harness", "emulator"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2 = "1.0.79"
+quote = "1.0.35"
+syn = { version = "2.0.52", features = ["full"] }
