@@ -6,13 +6,18 @@ edition = "2021"
 [workspace]
 members = ["macros"]
 
+[features]
+default = ["qemu"]
+qemu = ["serde_json", "serde"]
+
 [dependencies]
-log = "0.4.21"
+log = "0.4"
 cmdstruct = { version = "2.0.0" }
-serde = { version = "1.0.197", features = ["derive"] }
-serde_json = "1.0.114"
+serde = { version = "1", features = ["derive"], optional = true }
+serde_json = { version = "1", optional = true }
 system-harness-macros = { version = "0.1.0", path = "macros" }
 
 [dev-dependencies]
-mockall = "0.12.1"
-test-log = "0.2.15"
+serde_json = "1"
+mockall = "0.12"
+test-log = "0.2"

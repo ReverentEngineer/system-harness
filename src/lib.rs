@@ -96,9 +96,9 @@ mod error;
 pub use error::Error;
 pub use error::ErrorKind;
 
-#[cfg(target_family = "unix")]
+#[cfg(all(target_family = "unix", feature = "qemu"))]
 mod qemu;
-#[cfg(target_family = "unix")]
+#[cfg(all(target_family = "unix", feature = "qemu"))]
 pub use qemu::*;
 
 #[cfg(test)]
