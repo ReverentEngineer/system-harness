@@ -1,0 +1,4 @@
+{
+  "tool": "podman",
+  "image": "busybox"
+}

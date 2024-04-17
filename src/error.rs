@@ -59,6 +59,18 @@ impl From<std::ffi::NulError> for Error {
     }
 }
 
+impl From<serde_json::Error> for Error {
+    fn from(error: serde_json::Error) -> Self {
+        Self::new(ErrorKind::IO, error)
+    }
+}
+
+impl From<std::str::Utf8Error> for Error {
+    fn from(error: std::str::Utf8Error) -> Self {
+        Self::new(ErrorKind::IO, error)
+    }
+}
+
 #[cfg(feature = "serde")]
 impl std::error::Error for Error {}
 

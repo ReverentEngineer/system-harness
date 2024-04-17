@@ -14,6 +14,17 @@
 //!```json
 #![doc = include_str!("../tests/data/qemu-config.json")]
 //!```
+//! # Containers
+//!
+//! A [`ContainerSystem`](`crate::ContainerSystem`) that implements 
+//! [`SystemHarness`](`crate::SystemHarness`) can be instantiated using a 
+//! [`ContainerSystemConfig`](`crate::ContainerSystemConfig`) that can be deserialized
+//! using serde.
+//!
+//! An example of a container configuration:
+//!```json
+#![doc = include_str!("../tests/data/container-config.json")]
+//!```
 use std::io::{Read, Write};
 use std::time::SystemTime;
 
@@ -95,6 +106,11 @@ where
 mod error;
 pub use error::Error;
 pub use error::ErrorKind;
+
+#[cfg(all(target_family = "unix", feature = "container"))]
+mod container;
+#[cfg(all(target_family = "unix", feature = "container"))]
+pub use container::*;
 
 #[cfg(all(target_family = "unix", feature = "qemu"))]
 mod qemu;

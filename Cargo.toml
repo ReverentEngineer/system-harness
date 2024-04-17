@@ -1,13 +1,23 @@
 [package]
 name = "system-harness"
+authors = ["Jeff Caffrey-Hill <jeff@caffreyhill.com>"]
 version = "0.1.0"
 edition = "2021"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/ReverentEngineer/system-harness"
+documentation = "https://docs.rs/system-harness"
+description = """
+An system harness abstraction and configuration serialization 
+provider for virtualization and emulation systems
+"""
+keywords = ["system", "harness", "qemu", "container"]
 
 [workspace]
 members = ["macros"]
 
 [features]
-default = ["qemu"]
+default = ["qemu", "container"]
+container = ["serde_json", "serde"]
 qemu = ["serde_json", "serde"]
 
 [dependencies]
