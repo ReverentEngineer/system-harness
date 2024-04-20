@@ -88,6 +88,19 @@ pub trait SystemHarness: Write + Read {
     fn running(&mut self) -> Result<bool, Error>;
 }
 
+/// A trait representing a harnessed system that should be
+/// treated as a terminal
+pub trait SystemTerminal: SystemHarness {
+
+    /// Send a command to the terminal
+    fn send_command(&mut self, command: &str) -> Result<(), Error> {
+        self.write(command.as_bytes())?;
+        self.flush()?;
+        self.send_key(Key::Enter)
+    }
+
+}
+
 /// An event publisher
 pub trait EventPublisher {
     /// Subscribe event listener
