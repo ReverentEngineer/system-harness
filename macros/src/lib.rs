@@ -146,7 +146,7 @@ fn impl_backends(input: &DeriveInput) -> Result<TokenStream> {
 
 enum SerdeAttribute {
     Flatten,
-    Rename(Ident),
+    Rename(LitStr),
 }
 
 fn insert_prop(local: bool, field: &Field) -> Option<proc_macro2::TokenStream> {
@@ -163,7 +163,7 @@ fn insert_prop(local: bool, field: &Field) -> Option<proc_macro2::TokenStream> {
                 }
             },
             Some(SerdeAttribute::Rename(ref rename)) => {
-                let name_str = format!("{rename}");
+                let name_str = format!("{}", rename.value());
                 quote! {
                     props.insert(#name_str, #value);
                 }
@@ -220,7 +220,7 @@ fn parse_attributes(attrs: &[Attribute]) -> Option<SerdeAttribute> {
                         } else if meta.path.is_ident("rename") {
                             let value = meta.value()?;
                             let s: LitStr = value.parse()?;
-                            rename = Some(Ident::new(&s.value(), attr.span()));
+                            rename = Some(LitStr::new(&s.value(), attr.span()));
                         }
                         Ok(())
                     });
