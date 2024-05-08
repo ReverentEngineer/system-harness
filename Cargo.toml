@@ -22,7 +22,7 @@ qemu = ["serde_json", "serde"]
 
 [dependencies]
 log = "0.4"
-cmdstruct = { version = "2.0.0" }
+cmdstruct = { version = "2.0.1" }
 serde = { version = "1", features = ["derive"], optional = true }
 serde_json = { version = "1", optional = true }
 system-harness-macros = { version = "0.2.0", path = "macros" }
