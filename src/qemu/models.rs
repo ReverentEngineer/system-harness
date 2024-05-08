@@ -27,10 +27,14 @@ pub struct BlockDev {
     driver: String,
 
     /// Block node name
+    #[serde(rename = "node-name")]
     node_name: String,
 
     /// Discard strategy
-    discard: Discard,
+    discard: Option<Discard>,
+
+    #[serde(flatten)]
+    properties: BTreeMap<String, String>,
 }
 
 #[derive(Serialize, Deserialize)]

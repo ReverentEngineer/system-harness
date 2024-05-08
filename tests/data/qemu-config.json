@@ -3,5 +3,17 @@
     "memory": 512,
     "machine": {
         "type": "q35"
-    }
+    },
+    "blockdev": [
+        {
+            "driver": "file",
+            "node-name": "f1",
+            "filename": "test"
+        },
+        {
+            "driver": "qcow2",
+            "node-name": "q2",
+            "file": "f1"
+        }
+    ]
 }
