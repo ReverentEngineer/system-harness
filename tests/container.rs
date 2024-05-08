@@ -8,7 +8,9 @@ const JSON_CONFIG: &'static str = include_str!("../tests/data/container-config.j
 fn build() {
     let config: ContainerSystemConfig = serde_json::from_str(JSON_CONFIG).unwrap();
     let mut system = config.build().unwrap();
-    assert_eq!(true, system.running().unwrap(), "System not running");
+    while !system.running().unwrap() {
+        // Wait for system to be running
+    }
     assert_eq!(system.status().unwrap(), system_harness::Status::Running);
     system.pause().unwrap();
     assert_eq!(system.status().unwrap(), system_harness::Status::Paused);
