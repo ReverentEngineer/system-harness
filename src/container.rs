@@ -135,17 +135,22 @@ impl SystemHarness for ContainerSystem {
             .map_err(|err| { log::warn!("{err}"); err })
             .and_then(|stdout| {
                 let inspect: Vec<Inspect> = serde_json::from_str(&stdout)?;
-                if inspect.len() > 0 {
-                    if inspect[0].state.running {
-                        Ok(Status::Running)
-                    } else if inspect[0].state.paused {
-                        Ok(Status::Paused)
-                    } else {
-                        Ok(Status::Shutdown)
-                    }
-                } else {
-                    Err(Error::new(ErrorKind::HarnessError, "System doesn't exist"))
-                }
+                inspect.into_iter()
+                    .next()
+                    .ok_or(Error::new(ErrorKind::HarnessError, "Container doesn't exist"))
+                    .and_then(|inspect| {
+                        let state = &inspect.state;
+                        if state.running {
+                            Ok(Status::Running)
+                        } else if state.paused {
+                            Ok(Status::Paused)
+                        } else if !state.running && !state.paused {
+                            Ok(Status::Shutdown)
+                        } else {
+                            Err(Error::new(ErrorKind::HarnessError,
+                                    format!("Unhandled status: {}", state.status)))
+                        }
+                    })
             })
     }
 
