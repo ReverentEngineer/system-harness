@@ -148,7 +148,7 @@ impl SystemHarness for ContainerSystem {
                             Ok(Status::Shutdown)
                         } else {
                             Err(Error::new(ErrorKind::HarnessError,
-                                    format!("Unhandled status: {}", state.status)))
+                                    format!("Unhandled status")))
                         }
                     })
             })
