@@ -1,19 +1,19 @@
 {
-    "arch": "i386",
-    "memory": 512,
-    "machine": {
-        "type": "q35"
-    },
-    "blockdev": [
-        {
-            "driver": "file",
-            "node-name": "f1",
-            "filename": "test"
-        },
-        {
-            "driver": "qcow2",
-            "node-name": "q2",
-            "file": "f1"
-        }
-    ]
+	"arch": "i386",
+	"memory": 512,
+	"machine": {
+		"type": "q35"
+	},
+	"device": [
+		{
+			"driver": "virtio-blk",
+			"drive": "f1"
+		}],
+		"blockdev": [
+			{
+				"driver": "file",
+				"node-name": "f1",
+				"filename": "tests/data/test.raw"
+			}
+		]
 }

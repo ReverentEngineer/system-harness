@@ -196,9 +196,9 @@ mod tests {
         let command = config.command();
         assert_eq!("qemu-system-i386", command.get_program());
         assert_eq!(
-            vec!["-machine", "type=q35", "-m", "512", "-blockdev",
-                "driver=file,node-name=f1,filename=test", "-blockdev",
-                "driver=qcow2,node-name=q2,file=f1"],
+            vec!["-machine", "type=q35", "-m", "512",
+                "-device", "driver=virtio-blk,drive=f1",
+                "-blockdev", "driver=file,node-name=f1,filename=tests/data/test.raw"],
             command.get_args().collect::<Vec<_>>()
         );
     }
