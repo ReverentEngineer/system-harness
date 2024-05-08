@@ -68,9 +68,12 @@ pub trait EventSubscriber: Send + Sync + 'static {
 }
 
 /// A trait representing a harnessed system
-pub trait SystemHarness: Write + Read {
-    /// Send key to emulator
-    fn send_key(&mut self, key: Key) -> Result<(), Error>;
+pub trait SystemHarness {
+
+    type Terminal: SystemTerminal;
+
+    /// Get a terminal for the system 
+    fn terminal(&self) -> Result<Self::Terminal, Error>;
 
     /// Pause system
     fn pause(&mut self) -> Result<(), Error>;
@@ -90,7 +93,10 @@ pub trait SystemHarness: Write + Read {
 
 /// A trait representing a harnessed system that should be
 /// treated as a terminal
-pub trait SystemTerminal: SystemHarness {
+pub trait SystemTerminal: Write + Read {
+
+    /// Send key to emulator
+    fn send_key(&mut self, key: Key) -> Result<(), Error>;
 
     /// Send a command to the terminal
     fn send_command(&mut self, command: &str) -> Result<(), Error> {

@@ -1,4 +1,4 @@
-use crate::{Error, ErrorKind, EventPublisher, EventSubscriber, Key, Status, SystemHarness};
+use crate::{Error, ErrorKind, EventPublisher, EventSubscriber, Key, Status, SystemHarness, SystemTerminal};
 use cmdstruct::Command;
 use serde::{Deserialize, Serialize};
 use std::io::{Read, Write};
@@ -108,13 +108,18 @@ pub struct QemuSystem {
     qmp: QmpStream,
 }
 
-impl Read for QemuSystem {
+pub struct QemuSystemTerminal {
+    serial: UnixStream,
+    qmp: QmpStream
+}
+
+impl Read for QemuSystemTerminal {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         self.serial.read(buf)
     }
 }
 
-impl Write for QemuSystem {
+impl Write for QemuSystemTerminal {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         self.serial.write(buf)
     }
@@ -124,7 +129,8 @@ impl Write for QemuSystem {
     }
 }
 
-impl SystemHarness for QemuSystem {
+impl SystemTerminal for QemuSystemTerminal {
+
     fn send_key(&mut self, key: Key) -> Result<(), Error> {
         self.qmp
             .send_command(qmp::QmpCommand::SendKey(qmp::KeyCommand {
@@ -132,6 +138,22 @@ impl SystemHarness for QemuSystem {
             }))
             .map(|_| ())
     }
+
+}
+
+impl SystemHarness for QemuSystem {
+
+    type Terminal = QemuSystemTerminal;
+
+    fn terminal(&self) -> Result<Self::Terminal, Error> {
+        let serial = self.serial.try_clone()?;
+        let qmp = self.qmp.try_clone()?;
+        Ok(QemuSystemTerminal {
+            serial,
+            qmp
+        })
+    }
+
 
     fn running(&mut self) -> Result<bool, Error> {
         self.process

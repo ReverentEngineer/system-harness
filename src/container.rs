@@ -1,4 +1,4 @@
-use crate::{Error, ErrorKind, Status, SystemHarness};
+use crate::{Error, ErrorKind, Status, SystemHarness, SystemTerminal};
 use serde::{Deserialize, Serialize};
 use std::io::{Read, Write};
 use std::process::{Command, Output, Stdio, Child};
@@ -49,18 +49,15 @@ impl ContainerSystemConfig {
             .map_err(|err| { log::warn!("{err}"); err })?;
         log::trace!("Created container: {id}");
 
-        let process = Command::new(&self.tool)
-            .stdout(Stdio::piped())
-            .stdin(Stdio::piped())
+        Command::new(&self.tool)
+            .stdout(Stdio::null())
             .arg("start")
-            .arg("-a")
             .arg(&id)
-            .spawn()?;
+            .status()?;
 
         Ok(ContainerSystem {
             id,
-            tool: self.tool.clone(),
-            process: Some(process)
+            tool: self.tool.clone()
         })
     }
 
@@ -69,7 +66,10 @@ impl ContainerSystemConfig {
 pub struct ContainerSystem {
     tool: String,
     id: String,
-    process: Option<Child>
+}
+
+pub struct ContainerSystemTerminal {
+    process: Child
 }
 
 #[derive(Deserialize)]
@@ -85,10 +85,63 @@ struct Inspect {
     state: State
 }
 
-impl SystemHarness for ContainerSystem {
+impl SystemTerminal for ContainerSystemTerminal {
 
     fn send_key(&mut self, _key: crate::Key) -> Result<(), Error> {
         Err(Error::new(ErrorKind::HarnessError, "Sending a keystroke not supported"))
+    }
+
+}
+
+impl Read for ContainerSystemTerminal {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        self.process.stdout.as_mut()
+            .ok_or(std::io::Error::new(
+                    std::io::ErrorKind::BrokenPipe, 
+                    "Can't read from container"
+                    ))
+            .and_then(|stdout| stdout.read(buf))
+    }
+}
+
+impl Write for ContainerSystemTerminal {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        self.process.stdin.as_mut()
+            .ok_or(std::io::Error::new(
+                    std::io::ErrorKind::BrokenPipe, 
+                    "Can't write to container"
+                    ))
+            .and_then(|stdin| stdin.write(buf))
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        self.process.stdin.as_mut()
+            .ok_or(std::io::Error::new(
+                    std::io::ErrorKind::BrokenPipe, 
+                    "Can't write to container"
+                    ))
+            .and_then(|stdin| stdin.flush())
+    }
+}
+
+
+
+impl SystemHarness for ContainerSystem {
+
+    type Terminal = ContainerSystemTerminal;
+
+    fn terminal(&self) -> Result<Self::Terminal, Error> {
+        let process = Command::new(&self.tool)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .arg("exec")
+            .arg("-it")
+            .arg(&self.id)
+            .arg("sh")
+            .spawn()?;
+        Ok(Self::Terminal {
+            process
+        })
     }
 
     fn pause(&mut self) -> Result<(), Error> {
@@ -115,14 +168,13 @@ impl SystemHarness for ContainerSystem {
 
     fn shutdown(&mut self) -> Result<(), Error> {
         log::trace!("Shutting down container: {}", &self.id); 
-        if let Some(mut process) = self.process.take() {
-            if let Err(err) = process.kill() {
-                log::warn!("{err}");
-            }
-            Ok(())
-        } else {
-            Err(Error::new(ErrorKind::HarnessError, "Container not running"))
-        }
+         Command::new(&self.tool)
+            .arg("stop")
+            .arg(&self.id)
+            .output()
+            .map_err(|err| err.into())
+            .and_then(output_to_result)
+            .map(|_| log::trace!("Stopped container: {}", self.id))
     }
 
     fn status(&mut self) -> Result<Status, Error> {
@@ -158,40 +210,6 @@ impl SystemHarness for ContainerSystem {
         self.status().map(|status| status == Status::Running)
     }
 
-}
-
-impl Read for ContainerSystem {
-    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-        self.process.as_mut()
-            .and_then(|process| process.stdout.as_mut())
-            .ok_or(std::io::Error::new(
-                    std::io::ErrorKind::BrokenPipe, 
-                    "Can't read from container"
-                    ))
-            .and_then(|stdout| stdout.read(buf))
-    }
-}
-
-impl Write for ContainerSystem {
-    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        self.process.as_mut()
-            .and_then(|process| process.stdin.as_mut())
-            .ok_or(std::io::Error::new(
-                    std::io::ErrorKind::BrokenPipe, 
-                    "Can't write to container"
-                    ))
-            .and_then(|stdin| stdin.write(buf))
-    }
-
-    fn flush(&mut self) -> std::io::Result<()> {
-        self.process.as_mut()
-            .and_then(|process| process.stdin.as_mut())
-            .ok_or(std::io::Error::new(
-                    std::io::ErrorKind::BrokenPipe, 
-                    "Can't write to container"
-                    ))
-            .and_then(|stdin| stdin.flush())
-    }
 }
 
 impl Drop for ContainerSystem {

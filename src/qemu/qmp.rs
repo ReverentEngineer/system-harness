@@ -51,6 +51,15 @@ impl QmpStream {
         Ok(qmp_stream)
     }
 
+    pub fn try_clone(&self) -> Result<Self, Error> {
+        let stream = self.stream.get_ref().try_clone()?;
+        Ok(Self {
+            stream: BufReader::new(stream),
+            version: self.version,
+            subscribers: Vec::new()
+        })
+    }
+
     fn send_event(&mut self, event: &Event) -> Result<(), Error> {
         for subscriber in &mut self.subscribers {
             subscriber.on_event(&event);
@@ -96,7 +105,7 @@ impl EventPublisher for QmpStream {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Copy, Clone, Debug, Deserialize)]
 pub struct QemuVersion {
     major: usize,
     minor: usize,
