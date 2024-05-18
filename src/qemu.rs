@@ -26,6 +26,9 @@ fn qemu_system_bin(config: &QemuSystemConfig) -> String {
 pub struct QemuSystemConfig {
     arch: String,
 
+    #[arg(option = "-boot")]
+    boot: Option<Boot>,
+
     #[arg(option = "-cpu")]
     cpu: Option<String>,
 

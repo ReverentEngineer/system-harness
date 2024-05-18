@@ -4,6 +4,20 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use system_harness_macros::{Backend, PropertyList};
 
+#[derive(Clone, Serialize, Deserialize, PropertyList)]
+#[serde(rename_all = "kebab-case")]
+pub struct Boot {
+    menu: Option<OnOff>,
+    strict: Option<OnOff>,
+    #[serde(rename = "reboot-time")]
+    reboot_time: Option<String>,
+    #[serde(rename = "splash-time")]
+    splash_time: Option<String>,
+    splash: Option<String>,
+    once: Option<String>,
+    order: Option<String>
+}
+
 #[derive(Copy, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum Discard {
